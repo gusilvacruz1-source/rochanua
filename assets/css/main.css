@@ -1,0 +1,756 @@
+/* =====================================================================
+   MAIN.CSS · tokens, reset, tipografia, chapas e componentes
+   Site: ROCHA NUA (@rocha.nua)
+
+   Direção: cartaz impresso. A página é uma sequência de CHAPAS, e uma
+   chapa é uma foto inteira reticulada em meia-tona com a palavra da
+   seção por cima.
+
+   O truque de cor, e é um só: a foto vai para o navegador em bilevel,
+   ponto preto sobre branco. A cor não está na imagem — está no fundo da
+   chapa, e a mistura por multiplicação faz o branco virar a cor da
+   chapa e o ponto continuar preto. Mesma chapa, tinta diferente. É
+   litografia, e é por isso que uma foto de 50 KB pinta a tela inteira.
+
+   Regra de cor, uma só e vale na página inteira: laranja e amarelo
+   nunca levam texto claro em cima, fora a palavra gigante da chapa,
+   que passa em AA de texto grande e ainda ganha sombra.
+
+   Regra de forma: canto reto, raio 0.
+   ===================================================================== */
+
+/* Archivo variavel com os DOIS eixos: peso 100..900 e largura 62..125.
+   A referencia vive dessa combinacao — palavra leve e larga na chapa,
+   palavra pesada e estreita na repetida —, e um arquivo so entrega as
+   duas pontas. Por isso vale os 55 KB a mais do arquivo com eixo de
+   largura em vez do subconjunto so de peso. */
+@font-face{
+  font-family:'Archivo';
+  src:url('../fonts/archivo.woff2') format('woff2-variations'),
+      url('../fonts/archivo.woff2') format('woff2');
+  font-weight:100 900;
+  font-stretch:62% 125%;
+  font-style:normal;font-display:swap;
+}
+
+:root{
+  --asfalto:#141110;
+  --asfalto-2:#1E1917;
+  --creme:#F0E7D6;
+  --creme-2:#DBCFB8;
+  --laranja:#E2541F;
+  --laranja-forte:#F26B2E;
+  --amarelo:#F2B01E;
+
+  --ui:'Archivo',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+
+  --tira:1240px;
+  --barra:56px;      /* altura da barra do topo, descontada da capa */
+  --saida:cubic-bezier(.16,1,.3,1);
+
+  --fg:var(--creme);
+  --bg:var(--asfalto);
+}
+
+*{box-sizing:border-box}
+
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;
+  background:var(--asfalto);
+  color:var(--creme);
+  font-family:var(--ui);
+  font-size:16px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* Grão de impressão por cima de tudo. Fixo e sem eventos de ponteiro,
+   então não repinta a cada quadro de rolagem. */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:60;
+  pointer-events:none;
+  opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+img{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+h1,h2,h3{margin:0;font-weight:400}
+
+:focus-visible{
+  outline:3px solid var(--amarelo);
+  outline-offset:3px;
+}
+
+.pular{
+  position:absolute;left:-9999px;top:0;z-index:99;
+  background:var(--amarelo);color:var(--asfalto);
+  padding:12px 18px;font-weight:800;
+}
+.pular:focus{left:12px;top:12px}
+
+.tira{
+  width:100%;
+  max-width:var(--tira);
+  margin-inline:auto;
+  padding-inline:22px;
+}
+
+/* --------------------------------------------------------- micro-tipo
+   A letra miúda espaçada dos cantos. É o que dá o ar de ficha técnica
+   impressa: aparece na barra, nas marcas de canto e nas etiquetas de
+   lista. Nunca é o conteúdo, é a moldura dele. */
+
+.micro{
+  font-size:11px;
+  font-stretch:100%;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  line-height:1.5;
+}
+.micro--12{font-size:12px;letter-spacing:.16em}
+
+/* ------------------------------------------------------------- chapa
+   Uma foto reticulada ocupando a faixa inteira, com a palavra da seção
+   por cima. A imagem é bilevel; a cor vem de --base, e a multiplicação
+   pinta o branco do papel e deixa o ponto preto.
+
+   isolation:isolate prende a mistura dentro da chapa. Sem isso a foto
+   multiplicaria com a página inteira atrás dela. */
+
+.chapa{
+  --base:var(--creme);
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:var(--base);
+  min-height:clamp(300px,44vh,470px);
+  display:grid;
+  align-content:center;
+  padding-block:clamp(54px,8vw,96px);
+}
+.chapa--rubra{--base:var(--laranja)}
+
+/* Sem z-index de proposito: z-index aqui criaria um contexto de
+   empilhamento proprio e a multiplicacao passaria a misturar com o nada
+   em vez de com o fundo da chapa. Foi exatamente o erro que deixou a
+   faixa vermelha saindo em preto e branco. */
+.chapa__tela{position:absolute;inset:0;pointer-events:none}
+.chapa__tela img{
+  width:100%;height:100%;
+  object-fit:cover;
+  mix-blend-mode:multiply;
+}
+/* Se chegar uma foto crua pela vaga, ela não é bilevel. Aproxima o
+   tratamento para não destoar das reticuladas. Para o efeito de
+   verdade, passe a foto por ferramentas/meiatona.py. */
+.chapa__tela .vaga__real{filter:grayscale(1) contrast(1.9) brightness(1.04)}
+
+/* Véu de asfalto atrás da palavra. A chapa é foto, e foto tem clarão:
+   sem o véu a palavra clara cairia num trecho branco em alguma largura
+   de tela. Ele fica acima da imagem e fora da mistura. */
+.chapa__veu{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(to bottom, rgba(20,17,16,.88) 0%, rgba(20,17,16,.58) 11%, rgba(20,17,16,0) 27%),
+    linear-gradient(to top,    rgba(20,17,16,.66) 0%, rgba(20,17,16,0) 22%),
+    radial-gradient(ellipse 78% 62% at 50% 52%,
+              rgba(20,17,16,.72) 0%,
+              rgba(20,17,16,.50) 55%,
+              rgba(20,17,16,.28) 100%);
+}
+.chapa--rubra .chapa__veu{
+  background:
+    linear-gradient(to bottom, rgba(20,17,16,.42) 0%, rgba(20,17,16,0) 20%),
+    linear-gradient(to top,    rgba(20,17,16,.48) 0%, rgba(20,17,16,0) 22%),
+    radial-gradient(ellipse 74% 60% at 50% 52%,
+              rgba(20,17,16,.40) 0%,
+              rgba(20,17,16,.20) 60%,
+              rgba(20,17,16,.08) 100%);
+}
+
+/* Em tela estreita a elipse do veu cobre menos area absoluta e o texto
+   escorrega para fora dela. Medido em pixel, os botoes da capa caiam
+   para 4,0:1 no celular. */
+@media (max-width:820px){
+  .chapa__veu{
+    background:
+      linear-gradient(to bottom, rgba(20,17,16,.88) 0%, rgba(20,17,16,.58) 11%, rgba(20,17,16,.12) 27%),
+      linear-gradient(to top,    rgba(20,17,16,.72) 0%, rgba(20,17,16,.16) 24%),
+      radial-gradient(ellipse 116% 78% at 50% 52%,
+                rgba(20,17,16,.80) 0%,
+                rgba(20,17,16,.62) 58%,
+                rgba(20,17,16,.42) 100%);
+  }
+  .chapa--rubra .chapa__veu{
+    background:
+      linear-gradient(to bottom, rgba(20,17,16,.60) 0%, rgba(20,17,16,.10) 24%),
+      linear-gradient(to top,    rgba(20,17,16,.60) 0%, rgba(20,17,16,.10) 24%),
+      radial-gradient(ellipse 112% 76% at 50% 52%,
+                rgba(20,17,16,.54) 0%,
+                rgba(20,17,16,.34) 60%,
+                rgba(20,17,16,.18) 100%);
+  }
+}
+
+.chapa__conteudo{position:relative;z-index:2;text-align:center}
+
+.chapa__palavra{
+  font-size:clamp(2rem,7.2vw,5.6rem);
+  font-weight:300;
+  font-stretch:112%;
+  line-height:1.02;
+  letter-spacing:.004em;
+  color:var(--creme);
+  text-shadow:0 3px 22px rgba(20,17,16,.7);
+}
+.chapa__palavra b{font-weight:800;font-stretch:100%}
+
+/* ------------------------------------------------------------- marcas
+   As marcas de canto da chapa: onde numa prova de impressão iriam as
+   marcas de registro, aqui vai a ficha da banda. Só verdade — arroba,
+   gênero e o monograma. */
+
+.marcas{
+  position:absolute;
+  inset:auto 0 0 0;
+  z-index:3;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:end;
+  gap:14px;
+  padding:0 22px 18px;
+  color:var(--creme);
+  opacity:.9;
+  pointer-events:none;
+  text-shadow:0 1px 8px rgba(20,17,16,.95);
+}
+.marcas__dir{text-align:right}
+.marcas b{font-weight:800}
+
+@media (max-width:640px){
+  .marcas{grid-template-columns:1fr auto;padding-bottom:14px}
+  .marcas__meio{display:none}
+}
+
+/* ----------------------------------------------------------- botões */
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:14px 24px;
+  border:1px solid currentColor;
+  border-radius:0;
+  font-family:var(--ui);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background-color .18s var(--saida),
+             color .18s var(--saida),
+             border-color .18s var(--saida);
+}
+
+/* Laranja sempre com texto de asfalto. Ver a regra de cor. */
+.btn--cheio{
+  background:var(--laranja);
+  border-color:var(--laranja);
+  color:var(--asfalto);
+}
+.btn--cheio:hover{background:var(--laranja-forte);border-color:var(--laranja-forte)}
+
+.btn--linha{background:transparent;color:var(--fg)}
+.btn--linha:hover{background:var(--fg);color:var(--bg)}
+
+.btn--branco{background:var(--creme);border-color:var(--creme);color:var(--asfalto)}
+.btn--branco:hover{background:#fff;border-color:#fff}
+
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+
+.acoes{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  justify-content:center;
+}
+
+/* ----------------------------------------------------------- seções
+   Entre uma chapa e outra vem o conteúdo, e ele é sóbrio de propósito:
+   a chapa grita, a lista informa. */
+
+.secao{
+  --fg:var(--creme);
+  --bg:var(--asfalto);
+  background:var(--bg);
+  color:var(--fg);
+  padding-block:clamp(52px,8vw,96px);
+  position:relative;
+}
+.secao--papel{
+  --fg:var(--asfalto);
+  --bg:var(--creme);
+}
+
+/* Laranja-forte, nao a laranja base: em 11px a etiqueta e texto pequeno
+   e precisa de 4,5:1. A laranja base da 4,90:1 sobre asfalto limpo e nao
+   sobra folga nenhuma para o clarao da foto de fundo. A forte da 6,18:1. */
+.secao__etiqueta{
+  color:var(--laranja-forte);
+  margin-bottom:26px;
+}
+.secao--papel .secao__etiqueta{color:var(--asfalto);opacity:.55}
+
+/* ------------------------------------------------------ fundo da secao
+   Nenhum retangulo da pagina fica em cor chapada: a secao de conteudo
+   tambem recebe foto, so que apagada, para a lista continuar sendo o
+   que se le.
+
+   Reaproveita chapas que a pagina ja baixou, entao custa zero byte a
+   mais. E a mistura muda com o fundo, por causa da matematica:
+   - sobre creme, multiply: o branco do papel vira creme e o ponto fica
+     preto, que e a impressao normal;
+   - sobre asfalto, multiply devolveria asfalto em tudo (preto vezes
+     qualquer coisa e preto), entao vai de screen: o ponto some no
+     fundo e o claro da foto acende. */
+
+.secao{isolation:isolate}
+.secao__fundo{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+.secao__fundo img{
+  width:100%;height:100%;
+  object-fit:cover;
+}
+/* Aqui NAO ha mistura, e e medido: fundo de secao e camada grande, que
+   se desloca, e misturar uma camada grande em movimento obriga o
+   navegador a refazer a rasterizacao contra o fundo a cada quadro. Com
+   mistura, a pagina rodava a 30 quadros por segundo em 1440 px; sem, vai
+   a 60. E a diferenca de aparencia e de no maximo 8 de 255, invisivel,
+   porque esses fundos ja entram com opacidade baixa.
+
+   A mistura de verdade fica nas CHAPAS, onde a foto aparece inteira e o
+   efeito e o proprio desenho. */
+.secao--papel .secao__fundo img{opacity:.30}
+.secao:not(.secao--papel) .secao__fundo img{opacity:.16}
+
+/* Mesmo veu das chapas, pela mesma razao: sobre asfalto a foto ACENDE
+   (screen), e a etiqueta laranja de 11px caia para 2,5:1 justamente no
+   trecho claro. Mais fechado no meio, onde fica o texto, e aberto na
+   borda, onde a foto pode aparecer. */
+.secao__fundo::after{
+  content:'';
+  position:absolute;
+  inset:0;
+}
+.secao:not(.secao--papel) .secao__fundo::after{
+  background:radial-gradient(ellipse 92% 76% at 50% 50%,
+             rgba(20,17,16,.86) 0%,
+             rgba(20,17,16,.66) 62%,
+             rgba(20,17,16,.40) 100%);
+}
+.secao--papel .secao__fundo::after{
+  background:radial-gradient(ellipse 92% 76% at 50% 50%,
+             rgba(240,231,214,.80) 0%,
+             rgba(240,231,214,.58) 62%,
+             rgba(240,231,214,.34) 100%);
+}
+
+/* position:relative e nada mais. Um z-index aqui criaria contexto de
+   empilhamento e qualquer coisa dentro da secao que precise misturar com
+   o fundo — o selo da caveira, por exemplo — passaria a misturar com o
+   nada e apareceria como retangulo branco recortado. Sem z-index, o
+   .tira ainda pinta por cima do fundo, so por vir depois no documento. */
+.secao > .tira{position:relative}
+
+/* ------------------------------------------------- listas e vazios */
+
+.lista{margin-top:clamp(22px,3vw,34px)}
+
+.vazio{
+  border-top:1px solid currentColor;
+  border-bottom:1px solid currentColor;
+  padding:40px 0;
+  text-align:center;
+}
+.vazio__frase{
+  font-size:clamp(1.25rem,3vw,1.7rem);
+  font-weight:300;
+  font-stretch:110%;
+  line-height:1.25;
+}
+.vazio__nota{
+  margin-top:12px;
+  font-size:14px;
+  opacity:.7;
+  max-width:44ch;
+  margin-inline:auto;
+}
+
+/* Uma autoral por linha, numerada como faixa de disco. */
+.faixa-musica{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:baseline;
+  gap:18px;
+  padding:20px 0;
+  border-bottom:1px solid currentColor;
+}
+.faixa-musica:first-child{border-top:1px solid currentColor}
+.faixa-musica__num{
+  font-size:12px;font-weight:700;letter-spacing:.16em;
+  opacity:.55;
+}
+.faixa-musica__nome{
+  font-size:clamp(1.2rem,3.2vw,1.9rem);
+  font-weight:800;
+  font-stretch:105%;
+  letter-spacing:-.015em;
+}
+/* Quem fez a musica, quando e cover. Fica logo abaixo do nome porque e
+   informacao que muda o sentido da linha, nao rodape dela. */
+.faixa-musica__artista{font-size:13px;opacity:.62;letter-spacing:.06em}
+/* Autoral e o que se quer destacar: leva a cor de acento. */
+.faixa-musica__autoral{
+  font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--laranja-forte);
+}
+.secao--papel .faixa-musica__autoral{color:var(--asfalto)}
+.faixa-musica__ouvir{
+  font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  border-bottom:1px solid currentColor;
+}
+
+/* Um show por linha. */
+.show{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:22px;
+  padding:22px 0;
+  border-bottom:1px solid currentColor;
+}
+.show:first-child{border-top:1px solid currentColor}
+.show__data{
+  font-size:clamp(1.1rem,2.6vw,1.5rem);
+  font-weight:800;
+  letter-spacing:-.01em;
+  min-width:7.5ch;
+}
+.show__data small{
+  display:block;
+  font-size:11px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;opacity:.6;
+}
+.show__local{font-size:clamp(1.05rem,2.6vw,1.5rem);font-weight:800;font-stretch:105%}
+.show__cidade{font-size:13px;opacity:.65;letter-spacing:.06em}
+
+@media (max-width:560px){
+  .faixa-musica,.show{grid-template-columns:auto 1fr;gap:14px}
+  .faixa-musica__ouvir,.show .btn{grid-column:2;justify-self:start;margin-top:6px}
+}
+
+.grade-videos{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:26px;
+}
+.video__moldura{
+  position:relative;
+  aspect-ratio:16/9;
+  background:var(--asfalto-2);
+  border:1px solid currentColor;
+}
+.video__moldura iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video__titulo{
+  margin-top:12px;
+  font-size:14px;font-weight:700;letter-spacing:.04em;
+}
+
+/* ------------------------------------------------------ movimento
+   O movimento sai da linguagem da pagina, que e impressao: coisa que
+   entra e VARRIDA, como tinta passando no papel; chapa que rola tem
+   deslocamento diferente do texto, como plano de fundo mal registrado.
+   Nada de bloco generico subindo e sumindo.
+
+   O estado escondido so existe quando o JS assume (.js-anima na raiz).
+   Sem JS, com JS quebrado ou sem IntersectionObserver, a pagina nasce
+   inteira e visivel. Nunca esconder conteudo que dependa de script.
+
+   Tudo aqui e opacity, transform e clip-path: sao as tres propriedades
+   que o navegador anima sem refazer layout. */
+
+/* --- entra subindo --- */
+.js-anima [data-entra="sobe"]{
+  opacity:0;
+  transform:translate3d(0,24px,0);
+}
+.js-anima [data-entra="sobe"].entrou{
+  opacity:1;
+  transform:none;
+  transition:opacity .55s var(--saida) var(--atraso,0ms),
+             transform .8s var(--saida) var(--atraso,0ms);
+}
+
+/* --- so aparece, sem deslocar (letra miuda de canto) --- */
+.js-anima [data-entra="surge"]{opacity:0}
+.js-anima [data-entra="surge"].entrou{
+  opacity:1;
+  transition:opacity .8s var(--saida) var(--atraso,0ms);
+}
+
+/* --- varredura: a tinta passa da esquerda para a direita --- */
+.js-anima [data-entra="varre"]{
+  -webkit-clip-path:inset(0 100% 0 0);
+  clip-path:inset(0 100% 0 0);
+}
+.js-anima [data-entra="varre"].entrou{
+  -webkit-clip-path:inset(0 0 0 0);
+  clip-path:inset(0 0 0 0);
+  transition:clip-path .85s var(--saida) var(--atraso,0ms),
+             -webkit-clip-path .85s var(--saida) var(--atraso,0ms);
+}
+
+/* --- carimbo: desce de leve e assenta --- */
+.js-anima [data-entra="carimbo"]{
+  opacity:0;
+  transform:scale(1.09);
+}
+.js-anima [data-entra="carimbo"].entrou{
+  opacity:1;
+  transform:none;
+  transition:opacity .45s var(--saida) var(--atraso,0ms),
+             transform .8s var(--saida) var(--atraso,0ms);
+}
+
+/* O nome dentro do bloco e varrido junto, um pouco depois do bloco. */
+.js-anima .entra .cancao__nome,
+.js-anima .entra .show__local{
+  -webkit-clip-path:inset(0 100% 0 0);
+  clip-path:inset(0 100% 0 0);
+}
+.js-anima .entra.entrou .cancao__nome,
+.js-anima .entra.entrou .show__local{
+  -webkit-clip-path:inset(0 0 0 0);
+  clip-path:inset(0 0 0 0);
+  transition:clip-path .7s var(--saida) calc(var(--atraso,0ms) + 140ms),
+             -webkit-clip-path .7s var(--saida) calc(var(--atraso,0ms) + 140ms);
+}
+
+/* --- fora de registro ---
+   O gesto que faltava, e o mais proprio da linguagem: chapa impressa com
+   as cores desencontradas. Nao e enfeite generico — e o defeito classico
+   da grafica, virado desenho.
+
+   No texto, sao duas sombras duras: uma laranja de um lado, uma creme do
+   outro. Elas se AFASTAM conforme a peca sobe na tela, entao o titulo
+   parece ir entrando em registro. --registro e escrito pelo JS.
+
+   Custa zero pintura extra: text-shadow nao cria camada nova. */
+.capa__nome,
+.chapa__palavra,
+.banda__palavra,
+.repetida__linha,
+.fecho__titulo{
+  text-shadow:
+    calc(var(--registro, 0px) * -1) calc(var(--registro, 0px) * .35) 0 var(--laranja),
+    var(--registro, 0px) calc(var(--registro, 0px) * -.3) 0 rgba(240,231,214,.42),
+    0 3px 22px rgba(20,17,16,.7);
+}
+.secao--papel .banda__palavra{
+  text-shadow:
+    calc(var(--registro, 0px) * -1) calc(var(--registro, 0px) * .35) 0 var(--laranja),
+    var(--registro, 0px) calc(var(--registro, 0px) * -.3) 0 rgba(20,17,16,.24);
+}
+
+/* Na foto, o fora de registro esta ASSADO NO ARQUIVO, e nao numa camada
+   por cima. Medido: mover uma camada misturada do tamanho da tela custa
+   30 quadros por segundo em 1920 px e 20 em 2560, com ou sem a segunda
+   chapa; duas camadas misturadas nao passam de 30 em 1920 de jeito
+   nenhum. E o lugar certo do defeito e a chapa, nao o compositor:
+   ferramentas/meiatona.py desloca uma copia dos pontos e combina pelo
+   mais escuro. Sai de graca e o arquivo ate encolheu. */
+
+/* --- deslocamento por rolagem ---
+   A foto da chapa anda menos que a pagina, entao a faixa ganha
+   profundidade.
+
+   A folga para o deslocamento nao descobrir a borda vem da CAIXA ser
+   maior, e nao de um scale(). Medido: com scale(1.14) numa camada
+   misturada do tamanho da tela, o navegador rasteriza um bitmap maior
+   que a janela a cada quadro e a pagina caia para 30 quadros por
+   segundo em 1920 px. Com a caixa maior e so translate, vai a 60. */
+/* So o fundo de secao se desloca. A foto da chapa fica parada: ela e
+   misturada e do tamanho da tela, e camada assim em movimento derruba a
+   pagina para 30 quadros por segundo. O fundo de secao nao e misturado,
+   entao mover custa pouco. */
+.secao__fundo img{
+  height:calc(100% + 96px);
+  margin-top:-48px;
+  transform:translate3d(0,var(--paralaxe,0),0);
+}
+.repetida__linha{transform:translate3d(var(--paralaxe,0),0,0)}
+
+/* --- letra a letra ---
+   O nome da capa e montado letra por letra, como tipo sendo posto na
+   caixa. Cada letra cai um pouco torta e assenta. */
+.js-anima .letra{
+  display:inline-block;
+  opacity:0;
+  transform:translate3d(0,.42em,0) rotate(-7deg);
+}
+.js-anima .capa__nome.entrou .letra{
+  opacity:1;
+  transform:none;
+  transition:opacity .38s var(--saida) var(--letra,0ms),
+             transform .62s var(--saida) var(--letra,0ms);
+}
+/* O espaco entre palavras nao anima nem colapsa. */
+.js-anima .letra--vao{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  .js-anima .letra,
+  .js-anima .capa__nome.entrou .letra{opacity:1;transform:none;transition:none}
+  .capa__nome,.chapa__palavra,.banda__palavra,.repetida__linha,.fecho__titulo{
+    text-shadow:0 3px 22px rgba(20,17,16,.7);
+  }
+  .js-anima [data-entra],
+  .js-anima [data-entra].entrou{
+    opacity:1;transform:none;transition:none;
+    -webkit-clip-path:none;clip-path:none;
+  }
+  .js-anima .entra .cancao__nome,
+  .js-anima .entra .show__local,
+  .js-anima .entra.entrou .cancao__nome,
+  .js-anima .entra.entrou .show__local{
+    -webkit-clip-path:none;clip-path:none;transition:none;
+  }
+  .secao__fundo img{transform:none;height:100%;margin-top:0}
+  .repetida__linha{transform:none}
+}
+
+
+/* ------------------------------------------------------------- vagas
+   A foto real só aparece quando o arquivo existe: o JS confirma que ela
+   carregou e marca .vaga--cheia. Até lá vale a reserva.
+
+   A imagem escondida continua sendo baixada pelo navegador, que é
+   justamente como a vaga descobre se o arquivo existe. Por isso nenhuma
+   .vaga__real pode ter loading="lazy": escondida, ela nunca entraria em
+   viewport, nunca carregaria, e a vaga nunca encheria. */
+
+.vaga__real{display:none}
+.vaga--cheia .vaga__real{display:block}
+.vaga--cheia .vaga__reserva{display:none}
+
+
+/* --------------------------------------------------------- interacao
+   A pagina responde ao ponteiro, nao so a rolagem. Tudo por transform,
+   escrito pelo JS num quadro so, e tudo desligado em movimento reduzido
+   e em tela de toque. */
+
+/* O 3D vive so na tipografia: a palavra da chapa e empurrada e VIRA com
+   o ponteiro, e a faixa repetida e uma cena de verdade. Bloco de video,
+   card e logo ficam planos — inclinar tudo deixava a pagina bamba. */
+.chapa__palavra,
+.banda__palavra,
+.fecho__titulo{
+  transition:transform .5s var(--saida);
+}
+.mao .chapa__palavra,
+.mao .banda__palavra,
+.mao .fecho__titulo{
+  transition:transform .12s linear;   /* enquanto a mao guia, sem atraso */
+}
+
+/* Ima: o botao inclina na direcao do ponteiro e volta sozinho. */
+.btn{transition:background-color .18s var(--saida),color .18s var(--saida),
+     border-color .18s var(--saida),transform .45s var(--saida)}
+.btn.puxado{transition:transform .1s linear}
+
+/* Carimbo do clique: um anel de tinta que abre e some. */
+.carimbo{
+  position:fixed;
+  top:0;left:0;
+  width:26px;height:26px;
+  margin:-13px 0 0 -13px;
+  border:2px solid var(--laranja);
+  border-radius:50%;
+  pointer-events:none;
+  z-index:56;
+  animation:carimbar .55s var(--saida) forwards;
+}
+@keyframes carimbar{
+  from{transform:scale(.2);opacity:.9}
+  to{transform:scale(3.4);opacity:0}
+}
+
+/* A faixa repetida inclina com a velocidade da rolagem. */
+.repetida__linhas{transform:skewY(var(--torcao,0deg))}
+
+@media (prefers-reduced-motion:reduce){
+  .chapa__palavra,.banda__palavra,.fecho__titulo,.btn{transform:none!important;transition:none}
+  .carimbo{display:none}
+  .repetida__linhas{transform:none}
+}
+
+/* ------------------------------------------------------------ cursor
+   O ponteiro e uma bolinha: laranja com anel creme, para ler tanto no
+   asfalto quanto no papel. Em dois tamanhos, e nao um — se tudo fosse a
+   mesma bolinha, o link perderia o aviso de que e clicavel, que hoje e a
+   mao do sistema. A maior faz esse papel.
+
+   Isto e CSS puro e nao depende de script: mesmo sem JS o cursor e a
+   bolinha. O anel que vem atras e enfeite por cima, e some se o JS nao
+   rodar.
+
+   So onde existe ponteiro de verdade: em tela de toque nao ha cursor, e
+   um @media que ignore isso faria o navegador baixar duas imagens para
+   nada. O ultimo valor de cada linha e a saida de emergencia. */
+
+@media (hover:hover) and (pointer:fine){
+  body{
+    cursor:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACAUlEQVR42pVTPWhTURT+zr2JLTXGNjo4CuqgCILUUbM4WKGCCN2cRKGrDg4OKo4quDjYbC04lKIuIiglHUqxiJXaQKtQTIlNntqk7+Xl/+XdzyFNGkta4oE73HPO951/YA8hKSQF/yvkpCaptv/3FUndJXgbuPFxIrz55XV/e0ZdgXOrn4crxfV3xVImUyhmfldK6biTWrq+M0BHcDa1+JAmR291jrmXj5gdf8Bq4gNJh3Y6EetI0qzPSS0M0eS4MfXUW7tyxEteGjDJoQGTvHy4bsXu1sg87dTXW+2YJhMBAH39d+o/VlgcfwwJBALqYERUOCKqL6QrU2Oq9GnaIBS+zclJDcAQEEVSRMT8mX1zgIHgGXd+WliragR7AL/eeFpDtCh37r2CqOPOyUNHRYQgpVWL7q0pEVH064DIzgY1dH4dAJToYGukSkRIUkUGRxz63kro7HkDUQa+D2gNqIYvvTr3D0aNCNbCxkqSFIhsdXNmRgGAcTef7zt1TvVevWGMa/vGdciCQ2NnTc/Fa17owrCSQv6FnB6pAVDS7N0/O/AzESPzLMy/ovVslNaTm8zHJ0jatK3lt/F4PLDbLkjTYKeXRivlX4tuYb3quuteuWx9y1vL97ZWfO/7aDfa32ePVVILJ+LRaADb85Zu7kF30nUCy+4kEKCVDUWEnfz+As2hQOhQIgkMAAAAAElFTkSuQmCC") 8 8, auto;
+  }
+  a, button, .btn, summary, [role="button"], video,
+  .integrante__arroba, .menu a, .rodape__links a{
+    cursor:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAADlklEQVR42s1VX2ibVRT/nXu/L02bNDFNl23punb+KWNI2zmoFUptmfqge7APK/jgRBz6UgYi7nUrExT0URDBTZ3dHtLB6oOTOSStjm6zMldFka0lbq40TeyXpGmaJvm+e3zI2n1J080yBS/cl3vP/f3OOfd3zgH+T4uZiZnp3wYVzGGt/DwcDmscCskHBC8FMH4MeZPfn/KtdWD9qLT1UkEAiMhKRH7YXeULHGBHVbdSqpFBIpOdm6F87rI5Hz9FRN+tviHi+xKseHPkKNHbc7+9Lz11bzqX02Jp4iIKt6bArCCCzf6a1o5Ws7Hp9cz8jc8jP/80QESLlUhoLfiwAH7lhdhLZzyBLX2x0x+q3LkhpRJxAaWK9kQsPD7l6O2jzQcPy8XkwiX37eln0fZcFgDbSag850T9ljHzywe+YONbs+8eyudHR3Th8hB0R2moVgGcTkG2d+Ub3jnhSMwbZ+q27trPzIKI1BqClQvj90ut1U07JhfPHjczn70nhS9AUBbAZeklAqQGNmKoeuFAYfOhY7rxR+R5/44nvmZmSUQWAIi7L0YFAAif/zVnLo3sV19AuLyVwYseAWYB5KlDbmyErJvXWXp8bxQvh1fNbAQ9FgBQdc3TS5NXoIy4gO6oDG5fQoCXMjI9MUbQ9M7Z8yddRP3WiliEXWLGhY+9DN62/OcUwOofVywJQq74ZlPNtu1Be/pFiWF9gAhEUGrjVakUwEwQWgmmKP5XUVYPtb+YAiNaFWwGKhTNuhWvGI5gEyCFUUhFZleOSyLgcFgjIkZhedzV2sHk8SlYZlEt9+4ngMOp3Hu6mUzzan3nywt3FFlKgJ4eBgAzYXxq1m0hZ28fOJ0EpLY+uKaD0wk4OvYqvaWNOJ06bldkCQERWRwKSf9jHeMLc9GhwMHDmmzvyrMRKxpICYg7W0qACJz8C9S8s7B1YFBPxqJj3hNnh4ve95r3aBWg6OQ31a6GRy7Uet1PRT86ZuZHvyTOZgQJWs05OZxKe3IvBwcGtYwSU2xEu9wPd8aAo0Q0qCoS2CUbvzhSW71z1ycu/6Z+6+Z1pCfGkLs1BbCCI9gE955u6C1tWEolvp2PTL+yffczM+VtoiJBeetN3b62T/fWv2pJ2cmmGWBmoel6nFhdtZKJodqGx0/bW80Gx+ORuyo7f9KVvTH+aGr6SgtfPuex/R0eaIwysyyfbLZJdt+RSRuJyGbPtIFC/E/X3xZcyjcAcqmJAAAAAElFTkSuQmCC") 12 12, pointer;
+  }
+}
+
+/* O anel que segue a bolinha com atraso. Posicao e escala vao juntas no
+   mesmo transform, escrito pelo JS: animar largura e altura mexeria no
+   layout a cada quadro. */
+.anel{
+  position:fixed;
+  top:0;left:0;
+  width:34px;height:34px;
+  margin:-17px 0 0 -17px;
+  border:1px solid var(--laranja);
+  border-radius:50%;
+  pointer-events:none;
+  z-index:55;
+  opacity:0;
+  transition:opacity .3s var(--saida), border-color .25s var(--saida);
+}
+.anel--vendo{opacity:.7}
+.anel--sobre{border-color:var(--amarelo);opacity:.95}
+
+@media (prefers-reduced-motion:reduce){
+  .anel{display:none}
+}
