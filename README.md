@@ -8,8 +8,24 @@ framework e sem build.
 Este repositório é **só da Rocha Nua**. Não divide espaço com site
 nenhum: o que está aqui é o site da banda e o material que o gera.
 
-Publicado pelo **GitHub Pages**, a partir do ramo `main`, na raiz.
-Endereço: <https://gusilvacruz1-source.github.io/rocha-nua/>
+No ar em <https://rochanua.netlify.app>, pelo **Netlify**.
+
+**Atenção — hoje a publicação é manual.** O site foi enviado ao Netlify
+por *Netlify Drop* (arrastando a pasta), e o Netlify Drop **não** olha
+para este repositório. Ou seja: dar `git push` aqui não muda o que está
+no ar. Enquanto for assim, cada mudança precisa ser arrastada de novo.
+
+Para acabar com isso, é uma vez só, no painel do Netlify:
+
+```
+Site configuration -> Build & deploy -> Link repository -> rochanua
+   Build command:      (vazio)
+   Publish directory:  .
+```
+
+Feito isso, o endereço continua o mesmo e cada `push` no `main` publica
+sozinho. Não existe `netlify.toml` neste repositório, e não precisa:
+o site está na raiz, não tem build, não tem o que configurar.
 
 Para ver local, sirva **esta pasta**:
 
