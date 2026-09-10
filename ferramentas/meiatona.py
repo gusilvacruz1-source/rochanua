@@ -46,8 +46,20 @@ def meiatona(src, dst, largura, passo=6, angulo=45, contraste=1.0,
     tela = tela.rotate(-angulo, resample=Image.BICUBIC, fillcolor=255)
     e, t = (diag - w) // 2, (diag - h) // 2
     out = tela.crop((e, t, e + w, t + h))
-    out.save(dst, 'WEBP', lossless=True, quality=100, method=6)
+
+    # Volta a ser bilevel. O reduzir com LANCZOS suaviza a borda do ponto, e
+    # meio-tom nao comprime: a mesma chapa sai com 373 KB em cinza contra
+    # 20 KB em preto e branco puro. Toda chapa publicada e bilevel; sem esta
+    # linha a ferramenta nao reproduz o que esta no site.
+    out = out.point(lambda v: 0 if v < 128 else 255, 'L')
+
+    out.convert('RGB').save(dst, 'WEBP', lossless=True, quality=100, method=6)
     return out.size
 
 if __name__ == '__main__':
-    print(meiatona(*sys.argv[1:]))
+    # sys.argv chega tudo como texto; sem converter, `largura / im.width`
+    # estoura com TypeError e a linha de comando do README nao roda.
+    nums = {2: int, 3: int, 4: int, 5: float, 6: float}
+    args = [a if i == 0 or i == 1 else nums.get(i, float)(a)
+            for i, a in enumerate(sys.argv[1:])]
+    print(meiatona(*args))
